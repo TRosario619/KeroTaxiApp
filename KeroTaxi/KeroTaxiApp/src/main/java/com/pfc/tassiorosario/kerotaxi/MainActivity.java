@@ -1,11 +1,10 @@
 package com.pfc.tassiorosario.kerotaxi;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.util.Log;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -13,14 +12,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.backendless.Backendless;
-import com.backendless.BackendlessUser;
-import com.backendless.async.callback.BackendlessCallback;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback
 {
+
+
+    private GoogleMap gMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,22 +54,15 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        SupportMapFragment mapFragment = (SupportMapFragment) this.getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+
         String appVersion = "v1";
         Backendless.initApp( this, "5F7FFD88-9B9E-DB7C-FF62-E4212D969D00", "70C86C90-41F6-97BB-FF1C-99C48DC84E00", appVersion );
 
 
-        BackendlessUser user = new BackendlessUser();
-        user.setEmail( "tassiorosario@gmail.com" );
-        user.setPassword( "ibryodiz" );
-
-        Backendless.UserService.register( user, new BackendlessCallback<BackendlessUser>()
-        {
-            @Override
-            public void handleResponse( BackendlessUser backendlessUser )
-            {
-                Log.i( "Registration", backendlessUser.getEmail() + " successfully registered" );
-            }
-        } );
 
     }
 
@@ -103,23 +103,31 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
+        Intent itemIntent;
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
+        if (id == R.id.nav_login) {
+            itemIntent= new Intent(MainActivity.this,LoginActivity.class);
+            startActivity(itemIntent);
         } else if (id == R.id.nav_manage) {
 
         } else if (id == R.id.nav_share) {
 
-        } else if (id == R.id.nav_send) {
+        } else if (id == R.id.nav_about) {
 
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        gMap = googleMap;
+
+        // Add a marker in Sydney and move the camera
+        LatLng sydney = new LatLng(-34, 151);
+        gMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+        gMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
 }
