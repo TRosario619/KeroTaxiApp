@@ -5,8 +5,12 @@
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">#3be12c</item>
+        <item name="colorAccent">@color/colorPrimary</item>
     </style>
+    <style name="AppThemeIc">
+        <item name="colorAccent">#fae01c</item>
+    </style>
+
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>

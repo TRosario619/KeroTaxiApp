@@ -1,28 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single">
+    <group android:id="@id/menu_1"
+        android:checkableBehavior="single">
         <item
             android:id="@+id/nav_login"
             android:icon="@mipmap/ic_menu_login"
-            android:title="Login" />
+            android:title="@string/login" />
     </group>
 
-    <item android:title="Manage">
-        <menu>
+
+        <group android:id="@id/menu_2"
+            android:checkableBehavior="none">
             <item
                 android:id="@+id/nav_manage"
                 android:icon="@drawable/ic_menu_manage"
-                android:title="Tools" />
+                android:title="@string/preferencias" />
             <item
                 android:id="@+id/nav_share"
                 android:icon="@drawable/ic_menu_share"
-                android:title="Share" />
+                android:title="@string/partilhar" />
             <item
                 android:id="@+id/nav_about"
                 android:icon="@drawable/ic_menu_about"
-                android:title="About" />
-        </menu>
-    </item>
+                android:title="@string/about" />
+        </group>
 
 </menu>
