@@ -14,7 +14,10 @@
     <string name="action_sign_in">Entrar</string>
     <string name="action_sign_in_short">Login</string>
     <string name="error_invalid_email">Email inválido</string>
+    <string name="error_invalid_phone_num">Número de Telefone inválido</string>
+    <string name="error_invalid_name">Nome inválido</string>
     <string name="error_invalid_password">Palavra-passe é demasiada pequena</string>
+    <string name="error_no_match_password">Palavras-passes diferentes</string>
     <string name="error_incorrect_password">Palavra-passe incorrecta</string>
     <string name="error_field_required">Este campo é obrigatório</string>
     <string name="permission_rationale">"Contacts permissions are needed for providing email
