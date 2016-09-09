@@ -7,6 +7,14 @@
             android:id="@+id/nav_login"
             android:icon="@mipmap/ic_menu_login"
             android:title="@string/login" />
+        <item
+            android:id="@+id/nav_edit_user"
+            android:icon="@android:drawable/ic_menu_edit"
+            android:title="Editar sua informação" />
+        <item
+            android:id="@+id/nav_history"
+            android:icon="@android:drawable/ic_menu_recent_history"
+            android:title="Ver histórico" />
     </group>
 
 
@@ -24,6 +32,11 @@
                 android:id="@+id/nav_about"
                 android:icon="@drawable/ic_menu_about"
                 android:title="@string/about" />
+
+            <item
+                android:id="@+id/nav_logout"
+                android:icon="@mipmap/ic_menu_logout"
+                android:title="Sair" />
         </group>
 
 </menu>

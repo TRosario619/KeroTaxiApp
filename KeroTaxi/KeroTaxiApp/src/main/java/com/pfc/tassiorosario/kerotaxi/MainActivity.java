@@ -25,6 +25,8 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.backendless.Backendless;
+import com.backendless.BackendlessUser;
+import com.backendless.exceptions.BackendlessFault;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -38,6 +40,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.login2.DefaultCallback;
+import com.login2.Defaults;
 
 
 public class MainActivity extends AppCompatActivity
@@ -46,9 +50,10 @@ public class MainActivity extends AppCompatActivity
         GoogleApiClient.OnConnectionFailedListener {
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
-            Location lastLoc;
+    Location lastLoc;
     private GoogleMap gMap;
     private SupportMapFragment mapFragment;
+    private NavigationView navigationView;
     private LocationRequest LocRequest;
     private GoogleApiClient gApiClient;
     private Marker currLocMarker;
@@ -56,6 +61,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Backendless.setUrl( Defaults.SERVER_URL );
+        Backendless.initApp( this, Defaults.APPLICATION_ID, Defaults.SECRET_KEY, Defaults.VERSION );
+        BackendlessUser bu = Backendless.UserService.CurrentUser();
+
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -66,7 +76,7 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "Faça o Login para habilitar esta função", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
@@ -79,10 +89,18 @@ public class MainActivity extends AppCompatActivity
         toggle.syncState();
 
         //Work with this to change item menu
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         assert navigationView != null;
         navigationView.setNavigationItemSelectedListener(this);
+        Menu nav_menu =navigationView.getMenu();
+        if(Backendless.UserService.CurrentUser()==null){
 
+            nav_menu.findItem(R.id.nav_edit_user).setVisible(false);
+            nav_menu.findItem(R.id.nav_history).setVisible(false);
+            nav_menu.findItem(R.id.nav_logout).setVisible(false);
+        }else{
+            nav_menu.findItem(R.id.nav_login).setVisible(false);
+        }
 
         // Map code
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -92,10 +110,7 @@ public class MainActivity extends AppCompatActivity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-
-        String appVersion = "v1";
-        Backendless.initApp(this, "5F7FFD88-9B9E-DB7C-FF62-E4212D969D00", "70C86C90-41F6-97BB-FF1C-99C48DC84E00", appVersion);
-
+    invalidateOptionsMenu();
 
     }
 
@@ -110,6 +125,28 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onRestart() {
+        super.onRestart();
+        Intent previous= new Intent(this, MainActivity.class);
+        startActivity(previous);
+        this.finish();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == 1) {
+
+            if(resultCode == RESULT_OK){
+                this.finish();
+            }
+            if (resultCode == RESULT_CANCELED) {
+                //Do nothing?
+            }
+        }
+    }
+
+    @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         assert drawer != null;
@@ -120,10 +157,12 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+
         return true;
     }
 
@@ -154,16 +193,48 @@ public class MainActivity extends AppCompatActivity
             startActivity(itemIntent);
         } else if (id == R.id.nav_manage) {
 
+        }else if (id ==R.id.nav_edit_user) {
+
+        }else if (id == R.id.nav_history) {
+
+        } else if (id == R.id.nav_manage) {
+
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_about) {
 
+        }else if (id == R.id.nav_logout) {
+            onLogoutItemClicked();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         assert drawer != null;
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void onLogoutItemClicked()
+    {
+        Backendless.UserService.logout(new DefaultCallback<Void>( this )
+        {
+            @Override
+            public void handleResponse( Void response )
+            {
+                super.handleResponse( response );
+                startActivity( new Intent( MainActivity.this, MainActivity.class ) );
+                finish();
+            }
+
+            @Override
+            public void handleFault( BackendlessFault fault )
+            {
+                if( fault.getCode().equals( "3023" ) ) // Unable to logout: not logged in (session expired, etc.)
+                    handleResponse( null );
+                else
+                    super.handleFault( fault );
+            }
+        } );
+
     }
 
     @Override
@@ -213,7 +284,7 @@ public class MainActivity extends AppCompatActivity
 
         //move map camera
         float zoomIn= (float) 16.0;
-       gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,zoomIn));
+        gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,zoomIn));
         gMap.animateCamera(CameraUpdateFactory.zoomTo(16));
 
         //stop location updates

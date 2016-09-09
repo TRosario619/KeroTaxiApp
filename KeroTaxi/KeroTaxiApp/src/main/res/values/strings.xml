@@ -5,14 +5,14 @@
     <string name="navigation_drawer_close">Fechar navegador</string>
 
     <string name="action_settings">Definições</string>
-    <string name="title_activity_login">Login</string>
+    <string name="title_activity_login">Log in</string>
     <string name="title_activity_signUp">Registar conta</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Palavra-passe</string>
-    <string name="action_sign_in">Entrar</string>
-    <string name="action_sign_in_short">Login</string>
+    <string name="action_sign_in" translatable="false">Entrar</string>
+    <string name="action_sign_in_short">Log in</string>
     <string name="error_invalid_email">Email inválido</string>
     <string name="error_invalid_phone_num">Número de Telefone inválido</string>
     <string name="error_invalid_name">Nome inválido</string>
@@ -25,6 +25,10 @@
     </string>
     <string name="forgot_password">Esqueceu a Palavra-passe?</string>
     <string name="register">Registar nova conta</string>
+
+    <!-- Strings related to password recovery-->
+    <string name="password_recovered_message">We sent an email to your email address with a link to a password change page. Please check your email and follow the link for further instructions.</string>
+    <string name="warning_icon_description">warning icon</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
