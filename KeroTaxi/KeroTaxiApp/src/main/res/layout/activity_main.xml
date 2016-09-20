@@ -22,7 +22,6 @@
         android:layout_gravity="start"
         android:background="#fae01c"
         android:fitsSystemWindows="true"
-        app:headerLayout="@layout/nav_header_main"
         app:menu="@menu/activity_main_drawer" />
 
 

@@ -13,6 +13,12 @@
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- push Notification Configuration -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
+    <uses-permission android:name="com.pfc.tassiorosario.kerotaxi.permission.C2D_MESSAGE"/>
+    <permission android:name="com.pfc.tassiorosario.kerotaxi.permission.C2D_MESSAGE"
+        android:protectionLevel="signature"/>
 
     <application
         android:allowBackup="true"
@@ -50,6 +56,19 @@
                 android:value="com.pfc.tassiorosario.kerotaxi.MainActivity" />
         </activity>
 
+        <activity android:name=".PasswordRecoveryRequestedActivity"
+            android:label="Kero Taxi"
+            android:parentActivityName=".RestorePasswordActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+
+        <activity android:name=".RestorePasswordActivity"
+            android:label="Kero Taxi"
+            android:parentActivityName=".LoginActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+
+
         <activity android:name=".SignUpActivity"
             android:label="@string/title_activity_signUp"
             android:parentActivityName=".LoginActivity"
@@ -62,6 +81,15 @@
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
 
+        <receiver android:name=".pushNotification.PushReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+                <category android:name="com.pfc.tassiorosario.kerotaxi"/>
+            </intent-filter>
+        </receiver>
+        <service android:name=".pushNotification.MyPushService" />
 
         <!--
  ATTENTION: This was auto-generated to add Google Play services to your project for
@@ -71,12 +99,6 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-      <!--  <activity android:name=".PasswordRecoveryRequestedActivity" />
-        <activity android:name=".RegisterActivity" />
-        <activity android:name=".RegistrationSuccessActivity" />
-        <activity android:name=".RestorePasswordActivity" />
-
-        <activity android:name=".LoginSuccessActivity" /> -->
 
         <service android:name="com.backendless.AndroidService" />
 

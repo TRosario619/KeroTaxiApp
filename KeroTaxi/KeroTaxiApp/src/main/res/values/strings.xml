@@ -27,8 +27,8 @@
     <string name="register">Registar nova conta</string>
 
     <!-- Strings related to password recovery-->
-    <string name="password_recovered_message">We sent an email to your email address with a link to a password change page. Please check your email and follow the link for further instructions.</string>
-    <string name="warning_icon_description">warning icon</string>
+    <string name="password_recovered_message">Enviamos um e-mail para o seu endereço de e-mail com um link para uma página de alteração de senha. Por favor, verifique seu e-mail e siga o link para obter mais instruções.</string>
+    <string name="warning_icon_description">Alerta</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

@@ -2,6 +2,7 @@ package com.pfc.tassiorosario.kerotaxi;
 
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -17,11 +18,13 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.backendless.Backendless;
@@ -50,20 +53,24 @@ public class MainActivity extends AppCompatActivity
         GoogleApiClient.OnConnectionFailedListener {
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
-    Location lastLoc;
+    private Location lastLoc;
     private GoogleMap gMap;
     private SupportMapFragment mapFragment;
     private NavigationView navigationView;
     private LocationRequest LocRequest;
     private GoogleApiClient gApiClient;
     private Marker currLocMarker;
+    private BackendlessUser bu;
+    private LatLng latLng;
+    private TextView nomeUsuario;
+    private TextView usuario;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Backendless.setUrl( Defaults.SERVER_URL );
         Backendless.initApp( this, Defaults.APPLICATION_ID, Defaults.SECRET_KEY, Defaults.VERSION );
-        BackendlessUser bu = Backendless.UserService.CurrentUser();
+        bu = Backendless.UserService.CurrentUser();
 
 
         setContentView(R.layout.activity_main);
@@ -76,8 +83,14 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Faça o Login para habilitar esta função", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                if(bu==null){
+                    Snackbar.make(view, "Faça o Login para habilitar esta função", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show(); 
+                }else{
+                    Snackbar.make(view, "Olá", Snackbar.LENGTH_LONG)
+                            .setAction("Action", null).show();
+                }
+                
             }
         });
 
@@ -93,24 +106,35 @@ public class MainActivity extends AppCompatActivity
         assert navigationView != null;
         navigationView.setNavigationItemSelectedListener(this);
         Menu nav_menu =navigationView.getMenu();
-        if(Backendless.UserService.CurrentUser()==null){
+        View headerView = navigationView.inflateHeaderView(R.layout.nav_header_main);
+
+        nomeUsuario= (TextView) headerView.findViewById(R.id.welcomeTxtV);
+        usuario= (TextView) headerView.findViewById(R.id.userTxtV);
+        if(bu==null){
 
             nav_menu.findItem(R.id.nav_edit_user).setVisible(false);
             nav_menu.findItem(R.id.nav_history).setVisible(false);
             nav_menu.findItem(R.id.nav_logout).setVisible(false);
         }else{
             nav_menu.findItem(R.id.nav_login).setVisible(false);
+            nomeUsuario.setText((String)bu.getProperty("name"));
+            usuario.setText(bu.getEmail());
         }
 
+        invalidateOptionsMenu();
+
+
+
+
+
         // Map code
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             checkLocationPermission();
         }
         mapFragment = (SupportMapFragment) this.getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-    invalidateOptionsMenu();
 
     }
 
@@ -191,9 +215,7 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_login) {
             itemIntent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(itemIntent);
-        } else if (id == R.id.nav_manage) {
-
-        }else if (id ==R.id.nav_edit_user) {
+        } else if (id ==R.id.nav_edit_user) {
 
         }else if (id == R.id.nav_history) {
 
@@ -204,7 +226,13 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_about) {
 
         }else if (id == R.id.nav_logout) {
-            onLogoutItemClicked();
+            new AlertDialog.Builder(MainActivity.this).setMessage("Deseja realmente sair?").setNegativeButton("Não",null).setPositiveButton("Sim", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    onLogoutItemClicked();
+                }
+            }).show();
+
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -213,9 +241,9 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private void onLogoutItemClicked()
+    public void onLogoutItemClicked()
     {
-        Backendless.UserService.logout(new DefaultCallback<Void>( this )
+        Backendless.UserService.logout(new DefaultCallback<Void>( MainActivity.this,"A sair..." )
         {
             @Override
             public void handleResponse( Void response )
@@ -242,7 +270,7 @@ public class MainActivity extends AppCompatActivity
         gMap = googleMap;
 
         //Initialize Google Play Services
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             if (ContextCompat.checkSelfPermission(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {
@@ -275,7 +303,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         //Place current location marker
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        latLng = new LatLng(location.getLatitude(), location.getLongitude());
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
         markerOptions.title("You are Here!");
@@ -313,7 +341,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        Toast.makeText(MainActivity.this, "Problem", Toast.LENGTH_SHORT).show();
     }
 
     public boolean checkLocationPermission(){
