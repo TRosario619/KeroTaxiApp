@@ -5,6 +5,7 @@ import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
@@ -56,6 +57,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.login2.DefaultCallback;
 import com.login2.Defaults;
+import com.pfc.tassiorosario.kerotaxi.model.KeroTaxiUser;
 import com.pfc.tassiorosario.kerotaxi.model.Taxista;
 
 import java.util.Iterator;
@@ -67,6 +69,8 @@ public class MainActivity extends AppCompatActivity
         GoogleApiClient.OnConnectionFailedListener {
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
+    private static final int SECINMILLISECONDS = 1000;
+    private static final int MININMILLISECONDS = 60 * SECINMILLISECONDS;
     private Location lastLoc;
     private GoogleMap gMap;
     private SupportMapFragment mapFragment;
@@ -164,39 +168,50 @@ public class MainActivity extends AppCompatActivity
     private void callCab() {
 
         String query = "distance(%s, %s, localizacaoActual.latitude,localizacaoActual.longitude)< km(5)";
-        String whereClause = String.format(query,lastLoc.getLatitude(),lastLoc.getLongitude());
+        String whereClause = String.format(query, lastLoc.getLatitude(), lastLoc.getLongitude());
 
         BackendlessDataQuery dataQuery = new BackendlessDataQuery(whereClause);
-        QueryOptions queryOptions= new QueryOptions();
+        QueryOptions queryOptions = new QueryOptions();
         queryOptions.addRelated("localizacaoActual");
         dataQuery.setQueryOptions(queryOptions);
 
-        progressDialog = ProgressDialog.show(MainActivity.this, "","A localizar taxistas...", true);
+        progressDialog = ProgressDialog.show(MainActivity.this, "", "A localizar taxistas...", true);
         Backendless.Data.of(Taxista.class).find(dataQuery, new AsyncCallback<BackendlessCollection<Taxista>>() {
             @Override
             public void handleResponse(BackendlessCollection<Taxista> taxistas) {
                 progressDialog.cancel();
-                if(taxistas.getCurrentPage().size()==0){
+                if (taxistas.getCurrentPage().size() == 0) {
                     progressDialog.cancel();
                     System.out.println("no taxi drivers");
                 }
 
-                Toast.makeText(MainActivity.this, "Success: "+taxistas.getTotalObjects(), Toast.LENGTH_SHORT).show();
-                progressDialog = ProgressDialog.show(MainActivity.this, "","A enviar pedido...", true);
+                Toast.makeText(MainActivity.this, "Success: " + taxistas.getTotalObjects(), Toast.LENGTH_SHORT).show();
+                progressDialog = ProgressDialog.show(MainActivity.this, "", "A enviar pedido...", true);
                 Iterator<Taxista> iterator = taxistas.getCurrentPage().iterator();
-                DeliveryOptions deliveryOptions = new DeliveryOptions();
+                final DeliveryOptions deliveryOptions = new DeliveryOptions();
 
-                while( iterator.hasNext() )
-                {
-                    Taxista taxista = iterator.next();
-                    System.out.println(String.format("Taxista: %s",taxista.getIdUsuario()) );
-                    deliveryOptions.addPushSinglecast(taxista.getRegDispositivo());
+                while (iterator.hasNext()) {
+                    final Taxista taxista = iterator.next();
+                    System.out.println(String.format("Taxista: %s", taxista.getIdUsuario()));
+
+                    Backendless.Persistence.of(KeroTaxiUser.class).findById(taxista.getIdUsuario(), new AsyncCallback<KeroTaxiUser>() {
+                        @Override
+                        public void handleResponse(KeroTaxiUser keroTaxiUser) {
+                            deliveryOptions.addPushSinglecast(keroTaxiUser.getRegDispositivo());
+                        }
+
+                        @Override
+                        public void handleFault(BackendlessFault backendlessFault) {
+                            System.out.println("find user Server error: " + backendlessFault.getMessage());
+                        }
+                    });
+//                    deliveryOptions.addPushSinglecast(taxista.getRegDispositivo());
                 }
 
                 PublishOptions publishOptions = new PublishOptions();
-                publishOptions.putHeader( PublishOptions.ANDROID_TICKER_TEXT_TAG, getString( R.string.app_name ) );
-                publishOptions.putHeader( PublishOptions.ANDROID_CONTENT_TITLE_TAG,"Um novo passageiro para si");
-                publishOptions.putHeader( PublishOptions.ANDROID_CONTENT_TEXT_TAG, "Olá");
+                publishOptions.putHeader(PublishOptions.ANDROID_TICKER_TEXT_TAG, getString(R.string.app_name));
+                publishOptions.putHeader(PublishOptions.ANDROID_CONTENT_TITLE_TAG, "Um novo passageiro para si");
+                publishOptions.putHeader(PublishOptions.ANDROID_CONTENT_TEXT_TAG, "Olá");
 
 
                 Backendless.Messaging.publish("this is a private message", publishOptions, deliveryOptions, new AsyncCallback<MessageStatus>() {
@@ -209,15 +224,15 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void handleFault(BackendlessFault backendlessFault) {
                         progressDialog.cancel();
-                        System.out.println("Server error: "+backendlessFault.getMessage());
+                        System.out.println("Server error: " + backendlessFault.getMessage());
                     }
                 });
             }
 
             @Override
             public void handleFault(BackendlessFault backendlessFault) {
-                   progressDialog.cancel();
-                   System.out.println("Server error: "+backendlessFault.getMessage());
+                progressDialog.cancel();
+                System.out.println("Server error: " + backendlessFault.getMessage());
             }
         });
     }
@@ -236,9 +251,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onRestart() {
         super.onRestart();
-        Intent previous = new Intent(this, MainActivity.class);
-        startActivity(previous);
-        this.finish();
+
+        //onLocationChanged(lastLoc);
     }
 
     @Override
@@ -377,10 +391,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
+
         lastLoc = location;
-        if (currLocMarker != null) {
-            currLocMarker.remove();
-        }
+
 
         //Place current location marker
         latLng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -389,6 +402,19 @@ public class MainActivity extends AppCompatActivity
         markerOptions.title("You are Here!");
         markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
         currLocMarker = gMap.addMarker(markerOptions);
+
+        gMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng newLatLng) {
+                if (currLocMarker != null) {
+                    currLocMarker.remove();
+                }
+
+                currLocMarker = gMap.addMarker(new MarkerOptions().position(newLatLng).
+                        title("You are Here!").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+                System.out.println(newLatLng.latitude + ", " + newLatLng.longitude);
+            }
+        });
 
         //move map camera
         float zoomIn = (float) 16.0;
@@ -404,8 +430,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         LocRequest = new LocationRequest();
-        LocRequest.setInterval(1000);
-        LocRequest.setFastestInterval(1000);
+        LocRequest.setInterval(5 * MININMILLISECONDS);
+        LocRequest.setFastestInterval(MININMILLISECONDS);
         LocRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
@@ -528,5 +554,28 @@ public class MainActivity extends AppCompatActivity
         );
         AppIndex.AppIndexApi.end(client, viewAction);
         client.disconnect();
+    }
+
+
+    private void savePreferences(){
+        SharedPreferences sharedPrefs = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor=sharedPrefs.edit();
+
+
+    }
+
+    private void loadPreferences(){
+        SharedPreferences sharedPrefs = getPreferences(MODE_PRIVATE);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
     }
 }
