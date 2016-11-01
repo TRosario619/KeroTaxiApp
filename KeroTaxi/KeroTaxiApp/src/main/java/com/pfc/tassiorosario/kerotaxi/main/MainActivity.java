@@ -122,10 +122,7 @@ public class MainActivity extends AppCompatActivity
                             .setAction("Action", null).show();
                 } else {
 
-
                     callCab();
-
-                    //System.out.println(lastLoc.getLatitude()+", "+lastLoc.getLongitude()+": yes");
                 }
 
             }
@@ -173,6 +170,7 @@ public class MainActivity extends AppCompatActivity
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
     }
 
     private void callCab() {
@@ -457,7 +455,7 @@ public class MainActivity extends AppCompatActivity
                 LocationServices.SettingsApi.checkLocationSettings(gApiClient, builder.build());
         result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
             @Override
-            public void onResult(LocationSettingsResult result) {
+            public void onResult(@NonNull LocationSettingsResult result) {
                 final Status status = result.getStatus();
                 final LocationSettingsStates state = result.getLocationSettingsStates();
                 switch (status.getStatusCode()) {
@@ -540,7 +538,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[], int[] grantResults) {
+                                           @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_LOCATION: {
                 // If request is cancelled, the result arrays are empty.

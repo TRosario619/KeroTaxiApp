@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.pfc.tassiorosario.kerotaxi">
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -27,13 +28,16 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        tools:ignore="AllowBackup">
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value=" AIzaSyCKWH07aeycnRLe04Bt9iZmsdH49Fk5RoA " />
 
+        <!-- Splash Activity -->
         <activity
             android:name=".main.SplashActivity"
+            android:label="@string/app_name"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -41,10 +45,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Main Activity -->
         <activity
             android:name=".main.MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".registerAndLogin.LoginActivity"
             android:label="@string/title_activity_login"
@@ -58,22 +64,22 @@
             android:name=".passwordRestore.PasswordRecoveryRequestedActivity"
             android:label="Kero Taxi"
             android:parentActivityName=".passwordRestore.RestorePasswordActivity"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".passwordRestore.RestorePasswordActivity"
             android:label="Kero Taxi"
             android:parentActivityName=".registerAndLogin.LoginActivity"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
             android:name=".registerAndLogin.SignUpActivity"
             android:label="@string/title_activity_signUp"
             android:parentActivityName=".registerAndLogin.LoginActivity"
-            android:theme="@style/AppTheme"></activity>
+            android:theme="@style/AppTheme"/>
         <activity
-            android:name=".TaxiDriveMode.TaxiDriverModeActivity"
+            android:name=".taxiDriveMode.TaxiDriverModeActivity"
             android:label="Kero Taxi - Modo Taxista"
             android:parentActivityName=".main.MainActivity"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"/>
 
         <receiver
             android:name=".pushReceiveNotification.PushReceiver"
@@ -96,16 +102,15 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <service android:name="com.backendless.AndroidService" />
 
         <activity
             android:name=".pushReceiveNotification.ShowPassengerDetailsActivity"
             android:label="@string/title_activity_show_passenger_details"
-            android:parentActivityName=".TaxiDriveMode.TaxiDriverModeActivity"
+            android:parentActivityName=".taxiDriveMode.TaxiDriverModeActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.pfc.tassiorosario.kerotaxi.TaxiDriveMode.TaxiDriverModeActivity" />
+                android:value="com.pfc.tassiorosario.kerotaxi.taxiDriveMode.TaxiDriverModeActivity" />
         </activity>
     </application>
 
