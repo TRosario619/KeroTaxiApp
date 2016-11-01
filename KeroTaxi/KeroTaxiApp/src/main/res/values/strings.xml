@@ -51,6 +51,7 @@
     <string name="about">Sobre a aplicação</string>
     <string name="hi">Olá,</string>
     <string name="user_name">[nome de usuário]</string>
+    <string name="title_activity_show_passenger_details">ShowPassengerDetailsActivity</string>
 
 
 </resources>

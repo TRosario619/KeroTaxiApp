@@ -1,10 +1,11 @@
-package com.pfc.tassiorosario.kerotaxi;
+package com.pfc.tassiorosario.kerotaxi.main;
 
 
 import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -44,9 +45,16 @@ import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -55,10 +63,12 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.login2.DefaultCallback;
-import com.login2.Defaults;
+import com.pfc.tassiorosario.kerotaxi.R;
+import com.pfc.tassiorosario.kerotaxi.defaults.DefaultCallback;
+import com.pfc.tassiorosario.kerotaxi.defaults.Defaults;
 import com.pfc.tassiorosario.kerotaxi.model.KeroTaxiUser;
 import com.pfc.tassiorosario.kerotaxi.model.Taxista;
+import com.pfc.tassiorosario.kerotaxi.registerAndLogin.LoginActivity;
 
 import java.util.Iterator;
 
@@ -198,6 +208,7 @@ public class MainActivity extends AppCompatActivity
                         @Override
                         public void handleResponse(KeroTaxiUser keroTaxiUser) {
                             deliveryOptions.addPushSinglecast(keroTaxiUser.getRegDispositivo());
+
                         }
 
                         @Override
@@ -212,6 +223,7 @@ public class MainActivity extends AppCompatActivity
                 publishOptions.putHeader(PublishOptions.ANDROID_TICKER_TEXT_TAG, getString(R.string.app_name));
                 publishOptions.putHeader(PublishOptions.ANDROID_CONTENT_TITLE_TAG, "Um novo passageiro para si");
                 publishOptions.putHeader(PublishOptions.ANDROID_CONTENT_TEXT_TAG, "Olá");
+
 
 
                 Backendless.Messaging.publish("this is a private message", publishOptions, deliveryOptions, new AsyncCallback<MessageStatus>() {
@@ -433,11 +445,56 @@ public class MainActivity extends AppCompatActivity
         LocRequest.setInterval(5 * MININMILLISECONDS);
         LocRequest.setFastestInterval(MININMILLISECONDS);
         LocRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(LocRequest);
+
+        //**************************
+        builder.setAlwaysShow(true); //this is the key ingredient
+        //**************************
+
+        PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(gApiClient, builder.build());
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(LocationSettingsResult result) {
+                final Status status = result.getStatus();
+                final LocationSettingsStates state = result.getLocationSettingsStates();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        Toast.makeText(MainActivity.this, "SUCCESS", Toast.LENGTH_SHORT).show();
+                        // All location settings are satisfied. The client can initialize location
+                        // requests here.
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        // Location settings are not satisfied. But could be fixed by showing the user
+                        // a dialog.
+                        try {
+                            // Show the dialog by calling startResolutionForResult(),
+                            // and check the result in onActivityResult().
+                            status.startResolutionForResult(
+                                    MainActivity.this, 1000);
+                            Toast.makeText(MainActivity.this, "RESOLUTION_REQUIRED", Toast.LENGTH_SHORT).show();
+                        } catch (IntentSender.SendIntentException e) {
+                            // Ignore the error.
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Location settings are not satisfied. However, we have no way to fix the
+                        // settings so we won't show the dialog.
+                        Toast.makeText(MainActivity.this, "SETTINGS_CHANGE_UNAVAILABLE", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            }
+        });
+
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(gApiClient, LocRequest, this);
+            LocationServices.FusedLocationApi.requestLocationUpdates(gApiClient, LocRequest,this);
         }
+
+
     }
 
     @Override

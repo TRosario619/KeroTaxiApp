@@ -14,11 +14,13 @@
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <!-- push Notification Configuration -->
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
-    <uses-permission android:name="com.pfc.tassiorosario.kerotaxi.permission.C2D_MESSAGE"/>
-    <permission android:name="com.pfc.tassiorosario.kerotaxi.permission.C2D_MESSAGE"
-        android:protectionLevel="signature"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <uses-permission android:name="com.pfc.tassiorosario.kerotaxi.permission.C2D_MESSAGE" />
+
+    <permission
+        android:name="com.pfc.tassiorosario.kerotaxi.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
 
     <application
         android:allowBackup="true"
@@ -30,66 +32,61 @@
             android:name="com.google.android.maps.v2.API_KEY"
             android:value=" AIzaSyCKWH07aeycnRLe04Bt9iZmsdH49Fk5RoA " />
 
-        <activity android:name=".SplashActivity"
+        <activity
+            android:name=".main.SplashActivity"
             android:theme="@style/SplashTheme">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
-            android:name=".MainActivity"
+            android:name=".main.MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
-
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
-            android:name=".LoginActivity"
+            android:name=".registerAndLogin.LoginActivity"
             android:label="@string/title_activity_login"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName=".main.MainActivity"
             android:theme="@style/AppTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.pfc.tassiorosario.kerotaxi.MainActivity" />
+                android:value=".main.MainActivity" />
         </activity>
-
-        <activity android:name=".PasswordRecoveryRequestedActivity"
+        <activity
+            android:name=".passwordRestore.PasswordRecoveryRequestedActivity"
             android:label="Kero Taxi"
-            android:parentActivityName=".RestorePasswordActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-
-        <activity android:name=".RestorePasswordActivity"
+            android:parentActivityName=".passwordRestore.RestorePasswordActivity"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".passwordRestore.RestorePasswordActivity"
             android:label="Kero Taxi"
-            android:parentActivityName=".LoginActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-
-
-        <activity android:name=".SignUpActivity"
+            android:parentActivityName=".registerAndLogin.LoginActivity"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".registerAndLogin.SignUpActivity"
             android:label="@string/title_activity_signUp"
-            android:parentActivityName=".LoginActivity"
-            android:theme="@style/AppTheme">
-        </activity>
-
-        <activity android:name=".TaxiModeActivity"
+            android:parentActivityName=".registerAndLogin.LoginActivity"
+            android:theme="@style/AppTheme"></activity>
+        <activity
+            android:name=".TaxiDriveMode.TaxiDriverModeActivity"
             android:label="Kero Taxi - Modo Taxista"
-            android:parentActivityName=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
+            android:parentActivityName=".main.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
 
-        <receiver android:name=".pushNotification.PushReceiver"
+        <receiver
+            android:name=".pushReceiveNotification.PushReceiver"
             android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
-                <category android:name="com.pfc.tassiorosario.kerotaxi"/>
+
+                <category android:name="com.pfc.tassiorosario.kerotaxi" />
             </intent-filter>
         </receiver>
-        <service android:name=".pushNotification.MyPushService" />
+
+        <service android:name=".pushReceiveNotification.MyPushService" />
 
         <!--
  ATTENTION: This was auto-generated to add Google Play services to your project for
@@ -99,9 +96,17 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-
         <service android:name="com.backendless.AndroidService" />
 
+        <activity
+            android:name=".pushReceiveNotification.ShowPassengerDetailsActivity"
+            android:label="@string/title_activity_show_passenger_details"
+            android:parentActivityName=".TaxiDriveMode.TaxiDriverModeActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.pfc.tassiorosario.kerotaxi.TaxiDriveMode.TaxiDriverModeActivity" />
+        </activity>
     </application>
 
 </manifest>
