@@ -34,10 +34,13 @@ import android.widget.Toast;
 import com.backendless.Backendless;
 import com.backendless.BackendlessCollection;
 import com.backendless.BackendlessUser;
+import com.backendless.DeviceRegistration;
 import com.backendless.async.callback.AsyncCallback;
 import com.backendless.exceptions.BackendlessFault;
+import com.backendless.geo.GeoPoint;
 import com.backendless.messaging.DeliveryOptions;
 import com.backendless.messaging.PublishOptions;
+import com.backendless.messaging.PushPolicyEnum;
 import com.backendless.persistence.BackendlessDataQuery;
 import com.backendless.persistence.QueryOptions;
 import com.backendless.services.messaging.MessageStatus;
@@ -66,7 +69,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.pfc.tassiorosario.kerotaxi.R;
 import com.pfc.tassiorosario.kerotaxi.defaults.DefaultCallback;
 import com.pfc.tassiorosario.kerotaxi.defaults.Defaults;
-import com.pfc.tassiorosario.kerotaxi.model.KeroTaxiUser;
+import com.pfc.tassiorosario.kerotaxi.model.Corrida;
 import com.pfc.tassiorosario.kerotaxi.model.Taxista;
 import com.pfc.tassiorosario.kerotaxi.registerAndLogin.LoginActivity;
 
@@ -88,7 +91,7 @@ public class MainActivity extends AppCompatActivity
     private LocationRequest LocRequest;
     private GoogleApiClient gApiClient;
     private Marker currLocMarker;
-    private BackendlessUser bu;
+    private BackendlessUser ku;
     private LatLng latLng;
     private TextView nomeUsuario;
     private TextView usuario;
@@ -98,17 +101,18 @@ public class MainActivity extends AppCompatActivity
      */
     private GoogleApiClient client;
     private ProgressDialog progressDialog;
+    private DeviceRegistration devReg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Backendless.setUrl(Defaults.SERVER_URL);
         Backendless.initApp(this, Defaults.APPLICATION_ID, Defaults.SECRET_KEY, Defaults.VERSION);
-        bu = Backendless.UserService.CurrentUser();
+        ku = Backendless.UserService.CurrentUser();
 
 
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
 
         // designing the navigation drawer layout
@@ -117,7 +121,7 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (bu == null) {
+                if (ku == null) {
                     Snackbar.make(view, "Faça o Login para habilitar esta função", Snackbar.LENGTH_LONG)
                             .setAction("Action", null).show();
                 } else {
@@ -140,19 +144,36 @@ public class MainActivity extends AppCompatActivity
         assert navigationView != null;
         navigationView.setNavigationItemSelectedListener(this);
         Menu nav_menu = navigationView.getMenu();
-        View headerView = navigationView.inflateHeaderView(R.layout.nav_header_main);
+        View headerView = navigationView.getHeaderView(0);
 
         nomeUsuario = (TextView) headerView.findViewById(R.id.welcomeTxtV);
         usuario = (TextView) headerView.findViewById(R.id.userTxtV);
-        if (bu == null) {
+        if (ku == null) {
 
             nav_menu.findItem(R.id.nav_edit_user).setVisible(false);
             nav_menu.findItem(R.id.nav_history).setVisible(false);
             nav_menu.findItem(R.id.nav_logout).setVisible(false);
         } else {
             nav_menu.findItem(R.id.nav_login).setVisible(false);
-            nomeUsuario.setText((String) bu.getProperty("name"));
-            usuario.setText(bu.getEmail());
+            nomeUsuario.setText("Olá "+ ku.getProperty("name"));
+            usuario.setText(ku.getEmail());
+            String regDev= (String)ku.getProperty("regDispositivo");
+           // if(regDev.equals(null)){
+                Backendless.Messaging.getDeviceRegistration(new AsyncCallback<DeviceRegistration>() {
+
+                    @Override
+                    public void handleResponse(DeviceRegistration devRegistry) {
+                        devReg=devRegistry;
+                        saveRegDevice();
+                    }
+
+                    @Override
+                    public void handleFault(BackendlessFault backendlessFault) {
+
+
+                    }
+                });
+
         }
 
         invalidateOptionsMenu();
@@ -202,10 +223,10 @@ public class MainActivity extends AppCompatActivity
                     final Taxista taxista = iterator.next();
                     System.out.println(String.format("Taxista: %s", taxista.getIdUsuario()));
 
-                    Backendless.Persistence.of(KeroTaxiUser.class).findById(taxista.getIdUsuario(), new AsyncCallback<KeroTaxiUser>() {
+                    Backendless.Persistence.of(BackendlessUser.class).findById(taxista.getIdUsuario(), new AsyncCallback<BackendlessUser>() {
                         @Override
-                        public void handleResponse(KeroTaxiUser keroTaxiUser) {
-                            deliveryOptions.addPushSinglecast(keroTaxiUser.getRegDispositivo());
+                        public void handleResponse(BackendlessUser keroTaxiUser) {
+                            deliveryOptions.addPushSinglecast((String)keroTaxiUser.getProperty( "regDispositivo" ));
 
                         }
 
@@ -214,17 +235,25 @@ public class MainActivity extends AppCompatActivity
                             System.out.println("find user Server error: " + backendlessFault.getMessage());
                         }
                     });
-//                    deliveryOptions.addPushSinglecast(taxista.getRegDispositivo());
+
                 }
+                Corrida newCorrida= new Corrida();
+                newCorrida.setIdPassageiro(ku.getUserId());
+                newCorrida.setLocalizacaoCliente(new GeoPoint(latLng.latitude,latLng.longitude));
+
+                deliveryOptions.setPushPolicy(PushPolicyEnum.ALSO);
 
                 PublishOptions publishOptions = new PublishOptions();
                 publishOptions.putHeader(PublishOptions.ANDROID_TICKER_TEXT_TAG, getString(R.string.app_name));
                 publishOptions.putHeader(PublishOptions.ANDROID_CONTENT_TITLE_TAG, "Um novo passageiro para si");
-                publishOptions.putHeader(PublishOptions.ANDROID_CONTENT_TEXT_TAG, "Olá");
+                publishOptions.putHeader(PublishOptions.ANDROID_CONTENT_TEXT_TAG, "Olá ");
+                //publishOptions.putHeader(PublishOptions.MESSAGE_TAG,newCorrida.getIdPassageiro());
+
+               // Bundle sendBox= new Bundle();
 
 
 
-                Backendless.Messaging.publish("this is a private message", publishOptions, deliveryOptions, new AsyncCallback<MessageStatus>() {
+                Backendless.Messaging.publish(newCorrida.toString2(), publishOptions, deliveryOptions, new AsyncCallback<MessageStatus>() {
                     @Override
                     public void handleResponse(MessageStatus messageStatus) {
                         progressDialog.cancel();
@@ -234,7 +263,7 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void handleFault(BackendlessFault backendlessFault) {
                         progressDialog.cancel();
-                        System.out.println("Server error: " + backendlessFault.getMessage());
+                        System.out.println("Server error 1: " + backendlessFault.getMessage()+", "+backendlessFault.getCode());
                     }
                 });
             }
@@ -242,7 +271,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void handleFault(BackendlessFault backendlessFault) {
                 progressDialog.cancel();
-                System.out.println("Server error: " + backendlessFault.getMessage());
+                System.out.println("Server error 2:" + backendlessFault.getMessage());
             }
         });
     }
@@ -423,6 +452,7 @@ public class MainActivity extends AppCompatActivity
                 currLocMarker = gMap.addMarker(new MarkerOptions().position(newLatLng).
                         title("You are Here!").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
                 System.out.println(newLatLng.latitude + ", " + newLatLng.longitude);
+                latLng=newLatLng;
             }
         });
 
@@ -632,5 +662,21 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+    }
+
+    private void saveRegDevice(){
+        ku.setProperty("regDispositivo",devReg.getDeviceId());
+        Backendless.UserService.update(ku, new AsyncCallback<BackendlessUser>() {
+            @Override
+            public void handleResponse(BackendlessUser backendlessUser) {
+                System.out.println("registry saved");
+            }
+
+            @Override
+            public void handleFault(BackendlessFault backendlessFault) {
+                Toast.makeText(MainActivity.this,"reg Error: "+backendlessFault.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 }
