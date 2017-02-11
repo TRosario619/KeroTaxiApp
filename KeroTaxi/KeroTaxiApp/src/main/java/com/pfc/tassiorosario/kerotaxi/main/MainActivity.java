@@ -99,6 +99,7 @@ public class MainActivity extends AppCompatActivity
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
+
     private GoogleApiClient client;
     private ProgressDialog progressDialog;
     private DeviceRegistration devReg;
@@ -402,6 +403,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         gMap = googleMap;
+        LatLng MOZAMBIQUE = new LatLng(-18.6696553,35.5273354);
+        gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(MOZAMBIQUE,5.3f));
+
 
         //Initialize Google Play Services
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -458,8 +462,7 @@ public class MainActivity extends AppCompatActivity
 
         //move map camera
         float zoomIn = (float) 16.0;
-        gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomIn));
-        gMap.animateCamera(CameraUpdateFactory.zoomTo(16));
+        gMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomIn));
 
         //stop location updates
         if (gApiClient != null) {
